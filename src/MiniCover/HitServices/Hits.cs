@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace MiniCover
 {
-    public class Hits : IEnumerable<Hit>
+    public class Hits
     {
         private readonly Dictionary<int, Hit> hits;
 
@@ -51,16 +51,6 @@ namespace MiniCover
 
             var json = File.ReadAllText(file);
             return JsonConvert.DeserializeObject<Hit[]>($"[{json}]");
-        }
-
-        public IEnumerator<Hit> GetEnumerator()
-        {
-            return this.hits.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

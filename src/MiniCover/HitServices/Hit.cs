@@ -14,7 +14,7 @@ namespace MiniCover
 
         public int InstructionId { get; }
         public int Counter { get; private set; }
-        public IEnumerable<HitTestMethod> TestMethods => _testMethods ?? _testMethodsMap.Values;
+        public IEnumerable<HitTestMethod> TestMethods => _testMethods ?? _testMethodsMap.Select(kv => kv.Value);
 
         internal Hit(int instructionId)
         {
