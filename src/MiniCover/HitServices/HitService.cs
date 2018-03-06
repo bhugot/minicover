@@ -1,10 +1,10 @@
-﻿using System;
+﻿using MiniCover.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using MiniCover.Utils;
 
 namespace MiniCover
 {

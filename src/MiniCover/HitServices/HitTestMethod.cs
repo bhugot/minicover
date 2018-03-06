@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json;
 
 namespace MiniCover
 {
@@ -38,7 +34,7 @@ namespace MiniCover
         public string ClassName { get; }
         public string MethodName { get; }
         public string AssemblyLocation { get; }
-        public int Counter { get; set; }
+        public int Counter { get; private set; }
 
         public void Hited()
         {

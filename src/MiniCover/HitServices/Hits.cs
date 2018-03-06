@@ -1,6 +1,4 @@
-﻿using MiniCover.Utils;
-using Newtonsoft.Json;
-using System.Collections;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
