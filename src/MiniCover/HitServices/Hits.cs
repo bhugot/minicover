@@ -1,4 +1,5 @@
 ﻿using MiniCover.Utils;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -9,17 +10,10 @@ namespace MiniCover
     public class Hits : IEnumerable<Hit>
     {
         private readonly Dictionary<int, Hit> hits;
-        
+
         internal Hits(IEnumerable<Hit> hits)
         {
-            this.hits = hits
-                .GroupBy(hm => hm.InstructionId)
-                .ToDictionary(g => g.Key, Hit.Merge);
-        }
-
-        public Hits()
-            : this(Enumerable.Empty<Hit>())
-        {
+            this.hits = Hit.MergeDuplicates(hits).ToDictionary(h => h.InstructionId);
         }
 
         public bool IsInstructionHit(int id)
@@ -35,10 +29,10 @@ namespace MiniCover
             return hit.Counter;
         }
 
-        public IEnumerable<TestMethodInfo> GetInstructionTestMethods(int instructionId)
+        public IEnumerable<HitTestMethod> GetInstructionTestMethods(int instructionId)
         {
             if (!hits.TryGetValue(instructionId, out var hit))
-                return Enumerable.Empty<TestMethodInfo>();
+                return Enumerable.Empty<HitTestMethod>();
 
             return hit.TestMethods;
         }
@@ -56,17 +50,7 @@ namespace MiniCover
                 return Enumerable.Empty<Hit>();
 
             var json = File.ReadAllText(file);
-            return ParsingUtils.Parse($"[{json}]"); 
-        }
-
-        public void Hited(int id)
-        {
-            if (!this.hits.ContainsKey(id))
-            {   
-                this.hits.Add(id, new Hit(id));
-            }
-
-            this.hits[id].HitedBy(TestMethodInfo.GetCurrentTestMethodInfo());
+            return JsonConvert.DeserializeObject<Hit[]>($"[{json}]");
         }
 
         public IEnumerator<Hit> GetEnumerator()
