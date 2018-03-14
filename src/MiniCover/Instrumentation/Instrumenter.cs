@@ -152,8 +152,6 @@ namespace MiniCover.Instrumentation
                 var instrumentedAttributeReference = assemblyDefinition.MainModule.ImportReference(instrumentedAttributeConstructor);
                 assemblyDefinition.CustomAttributes.Add(new CustomAttribute(instrumentedAttributeReference));
 
-                //CreateAssemblyInit(assemblyDefinition);
-
                 var enterMethodInfo = hitServiceType.GetMethod("EnterMethod");
                 var exitMethodInfo = methodContextType.GetMethod("Exit");
                 var hitInstructionMethodInfo = methodContextType.GetMethod("HitInstruction");
