@@ -31,6 +31,7 @@ namespace MiniCover.HitServices.UnitTests
                 result.MethodName.ShouldBe(sut.MethodName);
                 result.AssemblyName.ShouldBe(sut.AssemblyName);
                 result.AssemblyLocation.ShouldBe(sut.AssemblyLocation);
+                result.Counter.ShouldBe(sut.Counter);
                 result.HitedInstructions.ShouldBe(sut.HitedInstructions);
             }
         }
