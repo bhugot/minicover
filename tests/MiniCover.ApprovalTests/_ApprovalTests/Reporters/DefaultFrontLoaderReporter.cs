@@ -6,6 +6,7 @@
 
         public DefaultFrontLoaderReporter()
             : base(
+                TravisCIReporter.INSTANCE,
             TfsReporter.INSTANCE,
             TfsVnextReporter.INSTANCE,
             TeamCityReporter.INSTANCE,
