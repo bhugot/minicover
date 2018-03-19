@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-
+shopt -s extglob
 export "MiniCover=dotnet run -p src/MiniCover/MiniCover.csproj --"
 
 dotnet restore
@@ -9,7 +9,7 @@ dotnet build
 
 dotnet pack -c Release --output $PWD/artifacts --version-suffix ci-`date +%Y%m%d%H%M%S`
 
-for project in tests/**/*.csproj; do dotnet test --no-build $project; done
+for project in tests/!(MiniCover.ApprovalTests)/*.csproj; do dotnet test --no-build $project; done
 
 
 echo "### Running sample build"
