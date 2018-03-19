@@ -22,7 +22,7 @@ namespace MiniCover.ApprovalTests
             var filename = Path.GetFileNameWithoutExtension(filepath);
             var filedir = Path.Combine(Path.GetDirectoryName(filepath), "Result");
             var namer = new SaneNamer {Name = filename + "." + membername, SourcePath = filedir};
-            var reporter = new MultiReporter(new TravisCIReporter(), new ReportWithoutFrontLoading());
+            var reporter = new MultiReporter(new TravisCIReporter());
             Approver.Verify(new FileApprover(writer, namer), reporter);
         }
 
@@ -32,7 +32,7 @@ namespace MiniCover.ApprovalTests
             var filename = Path.GetFileNameWithoutExtension(filepath);
             var filedir = Path.Combine(Path.GetDirectoryName(filepath), "Result");
             var namer = new SaneNamer {Name = filename + "." + membername, SourcePath = filedir};
-            var reporter = new MultiReporter(new TravisCIReporter(), new ReportWithoutFrontLoading());
+            var reporter = new MultiReporter(new TravisCIReporter());
            Approver.Verify(new FileApprover(writer, namer), reporter);
         }
     }
