@@ -218,7 +218,100 @@ namespace MiniCover.Instrumentation
             }
         }
 
-	    
+	    private InstrumentedAssembly InstrumentAssemblyIfNecessary2(string assemblyFile)
+        {
+            var assemblyDirectory = Path.GetDirectoryName(assemblyFile);
+
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(assemblyDirectory);
+
+            using (var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyFile, new ReaderParameters { ReadSymbols = true, AssemblyResolver = resolver }))
+            {
+                if (!HasSourceFiles(assemblyDefinition))
+                    return null;
+
+                if (assemblyDefinition.CustomAttributes.Any(a => a.AttributeType.Name == "InstrumentedAttribute"))
+                    throw new Exception($"Assembly \"{assemblyFile}\" is already instrumented");
+
+                Console.WriteLine($"Instrumenting assembly \"{assemblyDefinition.Name.Name}\"");
+
+                var instrumentedAssembly = new InstrumentedAssembly(assemblyDefinition.Name.Name);
+                var instrumentedAttributeReference = assemblyDefinition.MainModule.ImportReference(instrumentedAttributeConstructor);
+                assemblyDefinition.CustomAttributes.Add(new CustomAttribute(instrumentedAttributeReference));
+
+                var enterMethodInfo = hitServiceType.GetMethod("EnterMethod");
+                var exitMethodInfo = methodContextType.GetMethod("Exit");
+                var hitInstructionMethodInfo = methodContextType.GetMethod("HitInstruction");
+
+                var methodContextClassReference = assemblyDefinition.MainModule.ImportReference(methodContextType);
+                var enterMethodReference = assemblyDefinition.MainModule.ImportReference(enterMethodInfo);
+                var exitMethodReference = assemblyDefinition.MainModule.ImportReference(exitMethodInfo);
+
+                var hitInstructionReference = assemblyDefinition.MainModule.ImportReference(hitInstructionMethodInfo);
+
+                var methods = assemblyDefinition.GetAllMethods();
+
+                var sources = SourceFile.FromAssembly(assemblyDefinition);
+                foreach (var sourceFile in sources)
+                {
+                    if(sourceFile.HasSourceFileChanged()) 
+                        Console.WriteLine($"Ignoring modified file \"{sourceFile.SourcePath}\"");
+
+                    sourceFile.Instrument(normalizedWorkDir, File.ReadAllLines);
+                }
+
+                var documentsGroups = methods
+                    .SelectMany(m => m.DebugInformation.SequencePoints, (method, s) => new
+                    {
+                        Method = method,
+                        SequencePoint = s,
+                        s.Document
+                    })
+                    .GroupBy(j => j.Document)
+                    .ToArray();
+
+                foreach (var documentGroup in documentsGroups)
+                {
+                    if (!sourceFiles.Contains(documentGroup.Key.Url))
+                        continue;
+
+                    var sourceRelativePath = GetSourceRelativePath(documentGroup.Key.Url);
+
+                    if (documentGroup.Key.FileHasChanged())
+                    {
+                        Console.WriteLine($"Ignoring modified file \"{documentGroup.Key.Url}\"");
+                        continue;
+                    }
+
+                    var fileLines = File.ReadAllLines(documentGroup.Key.Url);
+
+                    var methodGroups = documentGroup
+                        .GroupBy(j => j.Method, j => j.SequencePoint)
+                        .ToArray();
+
+                    foreach (var methodGroup in methodGroups)
+                    {
+                        var methodDefinition = methodGroup.Key;
+
+                        InstrumentMethod(methodDefinition, methodGroup, methodContextClassReference, enterMethodReference, exitMethodReference, fileLines, instrumentedAssembly, sourceRelativePath, hitInstructionReference);
+                    }
+                }
+
+                var miniCoverTempPath = GetMiniCoverTempPath();
+
+                var instrumentedAssemblyFile = Path.Combine(miniCoverTempPath, $"{Guid.NewGuid()}.dll");
+                var instrumentedPdbFile = GetPdbFile(instrumentedAssemblyFile);
+
+                assemblyDefinition.Write(instrumentedAssemblyFile, new WriterParameters { WriteSymbols = true });
+
+                instrumentedAssembly.TempAssemblyFile = instrumentedAssemblyFile;
+                instrumentedAssembly.TempPdbFile = instrumentedPdbFile;
+
+                return instrumentedAssembly;
+            }
+        }
+
+
         private void InstrumentMethod(MethodDefinition methodDefinition,
             IEnumerable<SequencePoint> sequencePoints,
             TypeReference methodContextClassReference,
