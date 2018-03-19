@@ -15,7 +15,7 @@ namespace ApprovalTests.Reporters
         public bool IsWorkingInThisEnvironment(string forFile)
         {
             var flag = Environment.GetEnvironmentVariable("TRAVIS");
-            return "True".Equals(flag, StringComparison.OrdinalIgnoreCase);
+            return "true".Equals(flag, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
